@@ -80,7 +80,7 @@ async function sendMessage() {
   addMessage(text, 'user');
   showTyping();
   try {
-    const res = await fetch('https://n8n.srv1208833.hstgr.cloud/webhook-test/squ-chat', {
+    const res = await fetch('https://n8n.srv1208833.hstgr.cloud/webhook/squ-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text, productId, chatId })
