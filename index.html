@@ -5,45 +5,283 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQU — Ask anything</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f6; display: flex; flex-direction: column; height: 100vh; }
-.header { background: #1a1a2e; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
-.header-logo { font-size: 22px; font-weight: 900; color: white; letter-spacing: -1px; }
-.header-logo span { color: #5DCAA5; }
-.header-sub { font-size: 12px; color: #5DCAA5; letter-spacing: 2px; text-transform: uppercase; }
-.chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.message { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 15px; line-height: 1.5; }
-.message.bot { background: white; color: #1a1a2e; border: 0.5px solid #e0e0e0; align-self: flex-start; border-bottom-left-radius: 4px; }
-.message.user { background: #1a1a2e; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-.message.typing { background: white; border: 0.5px solid #e0e0e0; align-self: flex-start; padding: 16px; }
-.typing-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #5DCAA5; animation: bounce 1.2s infinite; margin: 0 2px; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
-.input-bar { background: white; border-top: 0.5px solid #e0e0e0; padding: 16px 20px; display: flex; gap: 12px; align-items: center; }
-.input-bar input { flex: 1; border: 0.5px solid #e0e0e0; border-radius: 24px; padding: 12px 18px; font-size: 15px; outline: none; background: #f8f8f6; }
-.input-bar input:focus { border-color: #5DCAA5; }
-.send-btn { background: #1a1a2e; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-.send-btn:hover { background: #5DCAA5; }
-.powered { text-align: center; font-size: 11px; color: #aaa; padding: 8px; }
+  /* --- Base Styles & Fonts --- */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+  }
+  
+  body { 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    background: #111317; 
+    color: #f4f4f5;
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- Animations --- */
+  @keyframes slide-in-bottom {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes typing-bounce {
+    0%, 100% { transform: translateY(0px); opacity: 0.4; }
+    50% { transform: translateY(-3px); opacity: 1; }
+  }
+
+  /* --- Header --- */
+  .header { 
+    background: rgba(17, 19, 23, 0.8); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 20px; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    z-index: 10;
+  }
+  
+  .header-logo-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #00E5C3, #10b981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111317;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -1px;
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .header-title { 
+    font-size: 20px; 
+    font-weight: 900; 
+    color: white; 
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  
+  .header-sub { 
+    font-size: 10px; 
+    color: #00E5C3; 
+    letter-spacing: 0.2em; 
+    text-transform: uppercase; 
+    font-weight: 700;
+  }
+
+  /* --- Chat Window --- */
+  .chat-window { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 24px 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 16px; 
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom Scrollbar */
+  .chat-window::-webkit-scrollbar { width: 6px; }
+  .chat-window::-webkit-scrollbar-track { background: transparent; }
+  .chat-window::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+  /* --- Messages --- */
+  .message-wrapper {
+    display: flex;
+    flex-direction: column;
+    animation: slide-in-bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .message-wrapper.user { align-items: flex-end; }
+  .message-wrapper.bot { align-items: flex-start; }
+
+  .message { 
+    max-width: 85%; 
+    padding: 14px 18px; 
+    font-size: 14px; 
+    line-height: 1.5; 
+  }
+  
+  .message.user { 
+    background: rgba(255, 255, 255, 0.1); 
+    color: white; 
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px 16px 4px 16px; 
+  }
+  
+  .message.bot { 
+    background: rgba(0, 229, 195, 0.1); 
+    color: #f4f4f5; 
+    border: 1px solid rgba(0, 229, 195, 0.2);
+    border-radius: 16px 16px 16px 4px; 
+    box-shadow: 0 4px 24px rgba(0, 229, 195, 0.05);
+  }
+
+  .bot-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #00E5C3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .bot-label svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* --- Typing Indicator --- */
+  .message.typing { 
+    background: rgba(0, 229, 195, 0.05); 
+    border: 1px solid rgba(0, 229, 195, 0.1); 
+    border-radius: 16px 16px 16px 4px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .typing-dot { 
+    display: inline-block; 
+    width: 6px; 
+    height: 6px; 
+    border-radius: 50%; 
+    background: #00E5C3; 
+    animation: typing-bounce 1s infinite; 
+  }
+  
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* --- Input Area --- */
+  .input-container {
+    background: #111317;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 20px 8px 20px;
+  }
+
+  .input-bar { 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+    position: relative;
+  }
+  
+  .input-bar input { 
+    flex: 1; 
+    background: #1A1D24; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 16px; 
+    padding: 14px 48px 14px 16px; 
+    font-size: 14px; 
+    color: white;
+    outline: none; 
+    transition: all 0.3s ease;
+  }
+  
+  .input-bar input::placeholder {
+    color: #71717a;
+  }
+
+  .input-bar input:focus { 
+    border-color: #00E5C3; 
+    background: rgba(0, 229, 195, 0.02);
+  }
+  
+  .send-btn { 
+    position: absolute;
+    right: 6px;
+    background: #00E5C3; 
+    color: #111317; 
+    border: none; 
+    border-radius: 12px; 
+    width: 36px; 
+    height: 36px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.2s ease;
+  }
+  
+  .send-btn:hover { 
+    filter: brightness(1.1); 
+    transform: scale(1.05);
+  }
+  
+  .send-btn:active {
+    transform: scale(0.95);
+  }
+
+  .powered { 
+    text-align: center; 
+    font-size: 9px; 
+    font-weight: 700;
+    color: #52525b; 
+    padding: 12px 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
 </style>
 </head>
 <body>
+
+<!-- Header -->
 <div class="header">
-  <div>
-    <div class="header-logo">S<span>Q</span>U</div>
+  <div class="header-logo-box">S</div>
+  <div class="header-text">
+    <div class="header-title">SQU</div>
     <div class="header-sub">No stupid questions</div>
   </div>
 </div>
+
+<!-- Chat Window -->
 <div class="chat-window" id="chat">
-  <div class="message bot">👋 Hey! I'm SQU. No question is too stupid — ask me anything about this product!</div>
+  <!-- Initial Bot Message -->
+  <div class="message-wrapper bot">
+    <div class="message bot">
+      <div class="bot-label">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        SQU AI
+      </div>
+      👋 Hey! No question is too stupid — ask me anything about this product!
+    </div>
+  </div>
 </div>
-<div class="input-bar">
-  <input type="text" id="input" placeholder="Ask anything..." />
-  <button class="send-btn" id="send-btn">&#10148;</button>
+
+<!-- Input Area -->
+<div class="input-container">
+  <div class="input-bar">
+    <input type="text" id="input" placeholder="Ask a question..." autocomplete="off" />
+    <button class="send-btn" id="send-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </button>
+  </div>
+  <div class="powered">Powered by SQU</div>
 </div>
-<div class="powered">Powered by SQU</div>
+
 <script>
+// Logic remains unchanged, DOM manipulation updated for new HTML structure
 const params = new URLSearchParams(window.location.search);
 const productId = params.get('product') || 'apricot_01';
 const chatId = 'web_' + Math.random().toString(36).substr(2, 9);
@@ -51,20 +289,41 @@ const input = document.getElementById('input');
 const chat = document.getElementById('chat');
 
 function addMessage(text, type) {
-  const div = document.createElement('div');
-  div.className = 'message ' + type;
-  div.textContent = text;
-  chat.appendChild(div);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message-wrapper ' + type;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'message ' + type;
+  
+  if (type === 'bot') {
+    // Inject the SQU AI label for bot messages
+    bubble.innerHTML = `
+      <div class="bot-label">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        SQU AI
+      </div>
+      ${text}
+    `;
+  } else {
+    bubble.textContent = text;
+  }
+
+  wrapper.appendChild(bubble);
+  chat.appendChild(wrapper);
   chat.scrollTop = chat.scrollHeight;
-  return div;
 }
 
 function showTyping() {
-  const div = document.createElement('div');
-  div.className = 'message typing';
-  div.id = 'typing';
-  div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
-  chat.appendChild(div);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message-wrapper bot typing-indicator';
+  wrapper.id = 'typing';
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'message typing';
+  bubble.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  
+  wrapper.appendChild(bubble);
+  chat.appendChild(wrapper);
   chat.scrollTop = chat.scrollHeight;
 }
 
@@ -77,8 +336,10 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
   input.value = '';
+  
   addMessage(text, 'user');
   showTyping();
+  
   try {
     const res = await fetch('https://n8n.srv1208833.hstgr.cloud/webhook/squ-chat', {
       method: 'POST',
